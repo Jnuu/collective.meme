@@ -1,0 +1,19 @@
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:metal="http://xml.zope.org/namespaces/metal" xmlns:tal="http://xml.zope.org/namespaces/tal" xmlns:i18n="http://xml.zope.org/namespaces/i18n" i18n:domain="collective.memes" metal:use-macro="context/main_template/macros/master">
+
+<body>
+  <metal:block fill-slot="content-core">
+    <span tal:replace="structure context/@@authenticator/authenticator" />
+
+    <div class="row">
+      <span tal:repeat="meme python:view.get_memes()">
+        <div class="col-xs3">
+          <a tal:attributes="href python:meme.getURL()">
+            <img tal:attributes="src python: meme.getURL()+'/@@images/meme_image'" width="400" height="300" />
+          </a>
+          </div>
+      </span>
+    </div>
+  </metal:block>
+</body>
+
+</html>

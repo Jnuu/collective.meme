@@ -1,0 +1,190 @@
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:metal="http://xml.zope.org/namespaces/metal" xmlns:tal="http://xml.zope.org/namespaces/tal" xmlns:i18n="http://xml.zope.org/namespaces/i18n" i18n:domain="collective.memes" metal:use-macro="context/main_template/macros/master">
+
+<body>
+  <metal:style fill-slot="style_slot">
+    <!-- <link rel="stylesheet" href="${context/@@plone_portal_state/portal_url}/++resource++collective.memes/css/meme_register_view.css"> -->
+    <style type="text/css">
+      progress {
+        -webkit-appearance: none;
+      }
+
+      ::-webkit-progress-bar {
+        background-color: #f2f2f2;
+        border-radius: 20px;
+      }
+
+      ::-webkit-progress-value {
+        background-color: #0083be;
+        border-radius: 20px;
+      }
+
+      #overlay {
+        position: absolute;
+        top: 0;
+        z-index: 10;
+        width: 100%;
+        height: 100%;
+        visibility: hidden;
+        opacity: 0;
+        background: rgba(0, 0, 0, 0.5);
+        transition: all 0.5s ease-in-out;
+      }
+
+      #overlay.overlay-on {
+        visibility: visible;
+        opacity: 1;
+      }
+
+      #overlay .inner {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        text-align: center;
+        color: rgba(255, 255, 255, 0.8);
+      }
+
+      .error {
+        font-size: 25px;
+        color: #ff7676;
+      }
+    </style>
+  </metal:style>
+  <metal:scripts fill-slot="javascript_head_slot" tal:define="navroot context/@@plone_portal_state/navigation_root_url">
+    <script>
+      require = undefined;
+      define = undefined;
+    </script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+  </metal:scripts>
+
+
+  <metal:block fill-slot="content-core">
+    <span tal:replace="structure context/@@authenticator/authenticator" />
+    <div class="row">
+      <div class="col-xs-12">
+        <h2 i18n:translate="">Meme Register</h2>
+        <br>
+        <br>
+        <label>画像・動画ファイルをアップロードしてください
+          <input type="file" class="file" />
+        </label>
+        <br>
+        <label>タグ
+          <input type="text" id="tag" />
+        </label>
+
+        <br>
+        <br>
+        <div>
+          <input type="button" value="アップロード" onclick="createMeme()" />
+        </div>
+
+        <span id="file-error" class="error"></span>
+
+        <div id="overlay" class="overlay-event">
+          <div class="inner">
+            <p>ファイルをアップロードしています</p>
+            <div class="progress">
+              <progress id="progress_bar" min="0" max="100" value="0"></progress>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <h2 id="created-data-title"></h2>
+          <ul id="created-data">
+          </ul>
+        </div>
+
+      </div>
+    </div>
+
+    <script>
+      function toggleOverlay(max, idx) {
+        const overlay = document.getElementById("overlay");
+        if (idx == -1) {
+          overlay.classList.toggle("overlay-on");
+          console.log("overlay on");
+        } else if (idx == max - 1) {
+          overlay.classList.toggle("overlay-on");
+          console.log("overlay off");
+        }
+      }
+
+      function createMeme() {
+        let file_quant = document.getElementsByClassName("file").length;
+        let exist_file_indexes = new Array();
+
+        for (let i = 0; i < file_quant; ++i) {
+          file_data = document.getElementsByClassName("file").item(i).files[0];
+          if (file_data != undefined) {
+            exist_file_indexes.push(i);
+          }
+        }
+
+        // ファイルが選択されていない場合
+        if (exist_file_indexes.length == 0) {
+          let files = document.getElementById("file");
+          files.classList.add("errors");
+          document.getElementById("file-error").innerHTML =
+            "１つ以上のファイルを選択してください";
+
+          return;
+        }
+
+        toggleOverlay(exist_file_indexes.length, -1);
+
+        exist_file_indexes.map((file_num, index) => {
+          let file = document.getElementsByClassName('file').item(file_num).files[0];
+          let file_name = file.name;
+          let tag = document.getElementById('tag').value;
+
+          let params = new FormData();
+          params.append('_authenticator', document.getElementsByName('_authenticator').item(0).value);
+          params.append('file', file);
+          params.append('file_name', file_name);
+          params.append('tag', tag);
+
+          axios
+            .post('${context/absolute_url}/add-meme-register-view', params, {
+              onUploadProgress: function(progressEvent) {
+                let percentCompleted = Math.round(
+                  (100 * progressEvent.loaded) / progressEvent.total
+                );
+                document.getElementById("progress_bar").value = percentCompleted;
+              },
+            })
+            .then((response) => {
+              console.log(response);
+              toggleOverlay(exist_file_indexes.length, index);
+              showCreatedSingingData(response.data);
+            })
+            .catch((error) => {
+              console.log(error);
+            });
+        });
+        document.getElementById("regist-form").reset();
+      }
+
+      function showCreatedSingingData(object) {
+        let title = document.getElementById("created-data-title");
+        if (title.innerHTML == "") {
+          title.innerHTML = "登録した歌唱データ";
+        }
+
+        let list = document.getElementById("created-data");
+        let li = document.createElement("li");
+        let a = li.appendChild(document.createElement("a"));
+        a.href = object.link;
+        a.innerHTML = object.title;
+        a.target = "_blank";
+        a.rel = "noopener noreferrer";
+        list.appendChild(li);
+      }
+    </script>
+  </metal:block>
+
+</body>
+
+</html>

@@ -1,0 +1,41 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    xmlns:browser="http://namespaces.zope.org/browser"
+    xmlns:plone="http://namespaces.plone.org/plone"
+    i18n_domain="collective.memes">
+
+  -*- extra stuff goes here -*-
+
+  <browser:page
+    name="meme-view"
+    for="Products.CMFCore.interfaces.IFolderish"
+    class=".meme_view.MemeView"
+    template="meme_view.pt"
+    permission="zope2.View"
+    />
+
+  <browser:page
+    name="meme-folder-view"
+    for="Products.CMFCore.interfaces.IFolderish"
+    class=".meme_folder_view.MemeFolderView"
+    template="meme_folder_view.pt"
+    permission="zope2.View"
+    />
+
+  <browser:page
+    name="meme-register-view"
+    for="Products.CMFCore.interfaces.IFolderish"
+    class=".meme_register_view.MemeRegisterView"
+    template="meme_register_view.pt"
+    permission="zope2.View"
+    />
+
+  <browser:page
+    name="add-meme-register-view"
+    for="Products.CMFCore.interfaces.IFolderish"
+    class=".meme_register_view.AddMemeRegisterView"
+    permission="zope2.View"
+  />
+
+
+</configure>
